@@ -2,12 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-
+const cookieParser = require('cookie-parser');
+const authMiddleware = require('./middleware/authMiddleware');
 const authRoutes = require('./routes/auth');
 
 const app = express();
 app.use(express.json());
-
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
@@ -24,7 +25,7 @@ app.get("/", (req, res) => {
 
 app.use('/api', authRoutes);
 
-app.get("/main", (req, res) => {
+app.get("/main", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'main.html'));
 });
 

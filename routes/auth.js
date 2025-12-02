@@ -1,34 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken'); // <--- 1. IMPORT
 const User = require('../models/User');
 
-// 1. Rejestracja
-router.post("/register", async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "Użytkownik o takim emailu już istnieje." });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = new User({
-            name,
-            email,
-            password: hashedPassword
-        });
-
-        await user.save();
-        res.status(201).json({ message: "Rejestracja pomyślna! Możesz się zalogować." });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Błąd serwera podczas rejestracji." });
-    }
-});
+// ... (kod rejestracji bez zmian) ...
 
 // 2. Logowanie
 router.post("/login", async (req, res) => {
@@ -45,11 +21,42 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Nieprawidłowy email lub hasło." });
         }
 
-        res.status(200).json({ message: "Zalogowano pomyślnie!", userName: user.name });
+        // --- ZMIANA: TWORZENIE TOKENA ---
+        const token = jwt.sign(
+            { id: user._id, name: user.name }, // Co szyfrujemy? (ID i imię)
+            process.env.JWT_SECRET,            // Klucz z .env
+            { expiresIn: '1h' }                // Ważność: 1 godzina
+        );
+
+        // Wysyłamy token jako ciasteczko (httpOnly - bezpieczniejsze dla JS)
+        res.cookie('token', token, { 
+            httpOnly: true, 
+        });
+
+        res.status(200).json({ message: "Zalogowano pomyślnie!" });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Błąd serwera podczas logowania." });
+        res.status(500).json({ message: "Błąd serwera." });
+    }
+});
+
+// Dodatkowy endpoint do wylogowania (usuwa ciasteczko)
+router.post("/logout", (req, res) => {
+    res.clearCookie('token');
+    res.json({ message: "Wylogowano" });
+});
+
+// Dodatkowy endpoint: "Kim jestem?" (dla frontendu)
+router.get("/me", (req, res) => {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ user: null });
+
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        res.json({ user: verified });
+    } catch (err) {
+        res.status(401).json({ user: null });
     }
 });
 
