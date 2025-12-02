@@ -1,0 +1,110 @@
+:root {
+  --accent: #2563eb;
+  --left-bg-start: #0f172a;
+  --left-bg-end: #1e3a8a;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, Segoe UI, Roboto, Arial;
+}
+
+body {
+  background: linear-gradient(180deg, #f7fafc 0%, #eef2ff 100%);
+  min-height: 100vh;
+}
+
+/* --- Kolumna z gradientem (Hero) --- */
+.col-left {
+  background: linear-gradient(135deg, var(--left-bg-start), var(--left-bg-end));
+  min-height: 100vh;
+  padding: 2rem;
+  /* Płynne przejście przy zamianie */
+  transition: transform 0.5s ease-in-out;
+}
+
+/* --- Karty formularzy --- */
+.form-card, .register-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 0.75rem;
+  background: white;
+  /* Dodajemy animację pojawiania się */
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Domyślnie ukrywamy rejestrację */
+.register-card {
+  display: none;
+}
+
+/* --- Logika zamiany (Desktop) --- */
+@media (min-width: 768px) {
+  .row.h-100 {
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* Domyślna kolejność */
+  .col-left { order: 1; }
+  .col-right { order: 2; }
+
+  /* Stan: SWAPPED (Rejestracja) */
+  .row.swapped .col-left { order: 2; } /* Gradient idzie na prawo */
+  .row.swapped .col-right { order: 1; } /* Formularze idą na lewo */
+
+  /* Logika widoczności formularzy wewnątrz col-right */
+  
+  /* Gdy swapped: ukryj logowanie, pokaż rejestrację */
+  .row.swapped .col-right .form-card {
+    display: none;
+  }
+  .row.swapped .col-right .register-card {
+    display: block;
+  }
+}
+
+/* --- Logika dla urządzeń mobilnych (Pionowy układ) --- */
+@media (max-width: 767.98px) {
+  .col-left {
+    min-height: 200px; /* Mniejszy header na mobilkach */
+    padding: 24px;
+  }
+  
+  /* Na mobilkach nie zamieniamy orderem, po prostu podmieniamy formularz */
+  .row.swapped .form-card { display: none; }
+  .row.swapped .register-card { display: block; }
+}
+
+/* Reszta stylów bez zmian */
+.form-card .form-label { font-weight: 500; }
+
+.btn-gradient {
+  background: linear-gradient(135deg, var(--left-bg-start), var(--left-bg-end));
+  color: white;
+}
+.btn-gradient:hover {
+  background: linear-gradient(135deg, var(--left-bg-end), var(--left-bg-start));
+  color: white;
+  transform: translateY(1px);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+.links a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.links a:hover { text-decoration: underline; }
